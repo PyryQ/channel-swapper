@@ -4,6 +4,7 @@ import { AppBar, Toolbar, Button, Container, CssBaseline, ThemeProvider, createT
 import VotingPage from './components/VotingPage';
 import ShowDisplay from './components/ShowDisplay';
 import ShowManager from './components/ShowManager';
+import RemoteControl from './components/RemoteControl';
 import { signalRService } from './services/signalrService';
 
 const theme = createTheme({
@@ -38,11 +39,15 @@ function App() {
             <Button color="inherit" component={Link} to="/manage">
               Manage Shows
             </Button>
+            <Button color="inherit" component={Link} to="/change">
+              Remote
+            </Button>
           </Toolbar>
         </AppBar>
 
         <Container>
           <Routes>
+            <Route path="/change" element={<RemoteControl />} />
             <Route path="/" element={<VotingPage />} />
             <Route path="/show" element={<ShowDisplay />} />
             <Route path="/manage" element={<ShowManager />} />

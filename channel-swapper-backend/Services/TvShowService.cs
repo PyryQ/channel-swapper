@@ -110,6 +110,7 @@ namespace channel_swapper_backend.Services
                 else
                 {
                     Console.WriteLine($"Duplicate vote attempt from connection {connectionId}");
+                    throw new InvalidOperationException("You have already voted");
                 }
             }
         }
@@ -154,7 +155,13 @@ namespace channel_swapper_backend.Services
         {
             lock (_lock)
             {
-                return _totalVisitors > 0 && _currentVotes >= _totalVisitors / 2 + 1;
+                // Only change channel if we have visitors and enough votes (more than 50%)
+                var shouldChange = _totalVisitors > 0 && _currentVotes > _totalVisitors / 2;
+                if (shouldChange)
+                {
+                    Console.WriteLine($"Should change channel: true (votes: {_currentVotes}, visitors: {_totalVisitors}, threshold: {_totalVisitors / 2})");
+                }
+                return shouldChange;
             }
         }
 

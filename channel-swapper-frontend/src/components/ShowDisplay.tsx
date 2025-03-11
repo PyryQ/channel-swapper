@@ -1,9 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Box, Typography, Paper } from '@mui/material';
 import { observer } from 'mobx-react-lite';
+import { Link } from 'react-router-dom';
+import { signalRService } from '../services/signalrService';
 import { tvShowStore } from '../stores/TvShowStore';
+import styles from './ShowDisplay.module.css';
 
-const ShowDisplay: React.FC = observer(() => {
+const ShowDisplay = observer(() => {
+    useEffect(() => {
+        signalRService.setOnChannelChanged((show) => {
+            tvShowStore.setCurrentShow(show);
+        });
+    }, []);
+
     if (!tvShowStore.currentShow) {
         return (
             <Box
@@ -20,13 +29,7 @@ const ShowDisplay: React.FC = observer(() => {
     }
 
     return (
-        <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            minHeight="100vh"
-            padding={3}
-        >
+        <div className={styles.container}>
             <Paper
                 elevation={3}
                 sx={{
@@ -39,8 +42,12 @@ const ShowDisplay: React.FC = observer(() => {
                 <Typography variant="h3" gutterBottom color="primary">
                     {tvShowStore.currentShow.name}
                 </Typography>
+                <p>{tvShowStore.currentShow.description}</p>
             </Paper>
-        </Box>
+            <Link to="/manage" className={styles.cornerButton}>
+                ⚙️
+            </Link>
+        </div>
     );
 });
 

@@ -32,30 +32,36 @@ namespace channel_swapper_backend.Hubs
             var connectionId = Context.ConnectionId;
             Console.WriteLine($"Vote attempt from connection: {connectionId}");
 
-            if (_tvShowService.HasVoted(connectionId))
+            try
             {
-                Console.WriteLine($"Rejected duplicate vote from connection: {connectionId}");
-                // Send a message back to the client that they've already voted
-                await Clients.Caller.SendAsync("VoteRejected", "You have already voted");
-                return;
-            }
-
-            _tvShowService.AddVote(connectionId);
-            await BroadcastStats();
-            
-            if (_tvShowService.ShouldChangeChannel())
-            {
-                var (votes, visitors) = _tvShowService.GetCurrentStats();
-                Console.WriteLine($"Channel change threshold reached - Votes: {votes}, Visitors: {visitors}");
-                
-                var newShow = _tvShowService.GetRandomShow();
-                _tvShowService.ResetVotes();
-                if (newShow != null)
+                if (_tvShowService.HasVoted(connectionId))
                 {
-                    Console.WriteLine($"Changing channel to: {newShow.name}");
-                    await Clients.All.SendAsync("ChannelChanged", newShow);
+                    Console.WriteLine($"Rejected duplicate vote from connection: {connectionId}");
+                    await Clients.Caller.SendAsync("VoteRejected", "You have already voted");
+                    return;
                 }
+
+                _tvShowService.AddVote(connectionId);
                 await BroadcastStats();
+                
+                if (_tvShowService.ShouldChangeChannel())
+                {
+                    var (votes, visitors) = _tvShowService.GetCurrentStats();
+                    Console.WriteLine($"Channel change threshold reached - Votes: {votes}, Visitors: {visitors}");
+                    
+                    var newShow = _tvShowService.GetRandomShow();
+                    if (newShow != null)
+                    {
+                        Console.WriteLine($"Changing channel to: {newShow.name}");
+                        _tvShowService.ResetVotes(); // Reset votes after getting new show but before broadcasting
+                        await Clients.All.SendAsync("ChannelChanged", newShow);
+                        await BroadcastStats(); // Broadcast updated stats after reset
+                    }
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                await Clients.Caller.SendAsync("VoteRejected", ex.Message);
             }
         }
 

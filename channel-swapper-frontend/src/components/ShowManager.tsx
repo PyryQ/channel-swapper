@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Box,
     Button,
@@ -16,23 +16,53 @@ import {
     DialogActions
 } from '@mui/material';
 import { Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
-import { observer } from 'mobx-react-lite';
-import { tvShowStore } from '../stores/TvShowStore';
+import { signalRService } from '../services/signalrService';
+import { TvShow } from '../types/TvShow';
 
-const ShowManager: React.FC = observer(() => {
+const ShowManager: React.FC = () => {
+    const [shows, setShows] = useState<TvShow[]>([]);
     const [openDialog, setOpenDialog] = useState(false);
-    const [newShowName, setNewShowName] = useState('');
+    const [newShow, setNewShow] = useState({ name: '', id: 1 });
+    const [nextId, setNextId] = useState(1);
+
+    useEffect(() => {
+        // Load shows immediately from service
+        const loadShows = async () => {
+            const currentShows = await signalRService.getAllShows();
+            setShows(currentShows);
+        };
+        loadShows();
+
+        // Set up listener for updates
+        const onShowsUpdated = (updatedShows: TvShow[]) => {
+            setShows(updatedShows);
+        };
+        signalRService.setOnShowsUpdated(onShowsUpdated);
+
+        return () => {
+            signalRService.setOnShowsUpdated(null);
+        };
+    }, []);
 
     const handleAddShow = async () => {
-        if (newShowName.trim()) {
-            await tvShowStore.addShow(newShowName.trim());
-            setNewShowName('');
-            setOpenDialog(false);
+        if (newShow.name.trim()) {
+            try {
+                await signalRService.addShow({ ...newShow, id: nextId });
+                setNextId(prev => prev + 1);
+                setNewShow({ name: '', id: nextId + 1 });
+                setOpenDialog(false);
+            } catch (error) {
+                console.error('Error adding show:', error);
+            }
         }
     };
 
     const handleRemoveShow = async (id: number) => {
-        await tvShowStore.removeShow(id);
+        try {
+            await signalRService.removeShow(id);
+        } catch (error) {
+            console.error('Error removing show:', error);
+        }
     };
 
     return (
@@ -59,7 +89,7 @@ const ShowManager: React.FC = observer(() => {
 
             <Paper elevation={3} sx={{ width: '100%', maxWidth: 600 }}>
                 <List>
-                    {tvShowStore.shows.map((show) => (
+                    {shows.map((show) => (
                         <ListItem key={show.id}>
                             <ListItemText
                                 primary={show.name}
@@ -86,8 +116,8 @@ const ShowManager: React.FC = observer(() => {
                         margin="dense"
                         label="Show Name"
                         fullWidth
-                        value={newShowName}
-                        onChange={(e) => setNewShowName(e.target.value)}
+                        value={newShow.name}
+                        onChange={(e) => setNewShow({ ...newShow, name: e.target.value })}
                     />
                 </DialogContent>
                 <DialogActions>
@@ -99,6 +129,6 @@ const ShowManager: React.FC = observer(() => {
             </Dialog>
         </Box>
     );
-});
+};
 
 export default ShowManager; 

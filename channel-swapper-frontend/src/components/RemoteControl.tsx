@@ -1,34 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import { observer } from 'mobx-react-lite';
+import { useEffect } from 'react';
 import { signalRService } from '../services/signalrService';
-import './RemoteControl.css';
+import { tvShowStore } from '../stores/TvShowStore';
+import styles from './RemoteControl.module.css';
 
-
-export const RemoteControl: React.FC = () => {
-    const [votes, setVotes] = useState(0);
-    const [visitors, setVisitors] = useState(0);
-
+const RemoteControl = observer(() => {
     useEffect(() => {
         signalRService.setOnStatsUpdated((votes, visitors) => {
-            setVotes(votes);
-            setVisitors(visitors);
+            tvShowStore.setStats(votes, visitors);
         });
     }, []);
 
     const handleVote = async () => {
-        await signalRService.vote();
+        try {
+            await tvShowStore.vote();
+        } catch (error) {
+            console.error('Error voting:', error);
+        }
     };
 
     return (
-        <div className="remote-control">
-            <h1>TV Remote Control</h1>
-            <button className="change-channel-btn" onClick={handleVote}>
-                Change Channel
-            </button>
-            <div className="stats">
-                <p>Current Votes: {votes}</p>
-                <p>Total Visitors: {visitors}</p>
-                <p>Votes needed: {Math.ceil(visitors / 2)}</p>
+        <div className={styles.remoteContainer}>
+            <div className={styles.remote}>
+                <div className={styles.stats}>
+                    <div>Votes: {tvShowStore.votes}</div>
+                    <div>Visitors: {tvShowStore.visitors}</div>
+                </div>
+                <button 
+                    className={styles.voteButton}
+                    onClick={handleVote}
+                >
+                    CHANGE CHANNEL
+                </button>
             </div>
         </div>
     );
-}; 
+});
+
+export default RemoteControl; 
