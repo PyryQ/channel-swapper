@@ -42,7 +42,6 @@ const ShowDisplay = observer(() => {
                 <Typography variant="h3" gutterBottom color="primary">
                     {tvShowStore.currentShow.name}
                 </Typography>
-                <p>{tvShowStore.currentShow.description}</p>
             </Paper>
             <Link to="/manage" className={styles.cornerButton}>
                 ⚙️

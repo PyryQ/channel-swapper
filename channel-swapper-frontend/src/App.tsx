@@ -28,31 +28,36 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <AppBar position="static">
-          <Toolbar>
-            <Button color="inherit" component={Link} to="/">
-              Vote
-            </Button>
-            <Button color="inherit" component={Link} to="/show">
-              Current Show
-            </Button>
-            <Button color="inherit" component={Link} to="/manage">
-              Manage Shows
-            </Button>
-            <Button color="inherit" component={Link} to="/change">
-              Remote
-            </Button>
-          </Toolbar>
-        </AppBar>
-
-        <Container>
-          <Routes>
-            <Route path="/change" element={<RemoteControl />} />
-            <Route path="/" element={<VotingPage />} />
-            <Route path="/show" element={<ShowDisplay />} />
-            <Route path="/manage" element={<ShowManager />} />
-          </Routes>
-        </Container>
+        <Routes>
+          <Route path="/show" element={<ShowDisplay />} />
+          <Route path="/change" element={<RemoteControl />} />
+          <Route path="*" element={
+            <>
+              <AppBar position="static">
+                <Toolbar>
+                  <Button color="inherit" component={Link} to="/">
+                    Vote
+                  </Button>
+                  <Button color="inherit" component={Link} to="/show">
+                    Current Show
+                  </Button>
+                  <Button color="inherit" component={Link} to="/manage">
+                    Manage Shows
+                  </Button>
+                  <Button color="inherit" component={Link} to="/change">
+                    Remote
+                  </Button>
+                </Toolbar>
+              </AppBar>
+              <Container>
+                <Routes>
+                  <Route path="/" element={<VotingPage />} />
+                  <Route path="/manage" element={<ShowManager />} />
+                </Routes>
+              </Container>
+            </>
+          } />
+        </Routes>
       </Router>
     </ThemeProvider>
   );
