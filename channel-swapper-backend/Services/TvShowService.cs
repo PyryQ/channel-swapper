@@ -80,8 +80,19 @@ namespace channel_swapper_backend.Services
                 if (!_tvShows.Any())
                     return null;
                 
-                int index = _random.Next(_tvShows.Count);
-                return _tvShows[index];
+                // If we only have one show, return it
+                if (_tvShows.Count == 1)
+                    return _tvShows[0];
+
+                // Get all shows except the current one
+                var availableShows = _tvShows.Where(s => s != _currentShow).ToList();
+                
+                // If no other shows available (shouldn't happen due to first check)
+                if (!availableShows.Any())
+                    return _tvShows[0];
+                
+                int index = _random.Next(availableShows.Count);
+                return availableShows[index];
             }
         }
 
