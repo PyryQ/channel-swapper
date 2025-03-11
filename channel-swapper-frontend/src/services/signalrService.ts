@@ -32,6 +32,10 @@ class SignalRService {
                 this.onShowsUpdated(shows);
             }
         });
+
+        this.connection.on('VoteRejected', (message: string) => {
+            console.warn('Vote rejected:', message);
+        });
     }
 
     public async start() {
@@ -39,6 +43,12 @@ class SignalRService {
             await this.connection.start();
             console.log('SignalR Connected');
             this.shows = await this.getAllShows();
+            
+            // Get current show on connection
+            const currentShow = await this.getCurrentShow();
+            if (currentShow && this.onChannelChanged) {
+                this.onChannelChanged(currentShow);
+            }
         } catch (err) {
             console.log('SignalR Connection Error: ', err);
             setTimeout(() => this.start(), 5000);
@@ -95,6 +105,15 @@ class SignalRService {
         } catch (error) {
             console.error('Error getting shows:', error);
             return this.shows;
+        }
+    }
+
+    public async getCurrentShow(): Promise<TvShow | null> {
+        try {
+            return await this.connection.invoke('GetCurrentShow');
+        } catch (error) {
+            console.error('Error getting current show:', error);
+            return null;
         }
     }
 }

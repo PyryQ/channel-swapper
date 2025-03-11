@@ -1,0 +1,35 @@
+.container {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: black;
+    color: white;
+}
+
+.showContent {
+    text-align: center;
+}
+
+.cornerButton {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.cornerButton:hover {
+    background-color: rgba(0, 0, 0, 0.9);
+    transform: scale(1.1);
+} 

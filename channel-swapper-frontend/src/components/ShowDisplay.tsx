@@ -1,29 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Box, Typography, Paper } from '@mui/material';
+import { observer } from 'mobx-react-lite';
+import { Link } from 'react-router-dom';
 import { signalRService } from '../services/signalrService';
-import { TvShow } from '../types/TvShow';
+import { tvShowStore } from '../stores/TvShowStore';
+import styles from './ShowDisplay.module.css';
 
-const ShowDisplay: React.FC = () => {
-    const [currentShow, setCurrentShow] = useState<TvShow | null>(null);
-
+const ShowDisplay = observer(() => {
     useEffect(() => {
-        // Set up the channel changed listener
         signalRService.setOnChannelChanged((show) => {
-            setCurrentShow(show);
+            tvShowStore.setCurrentShow(show);
         });
-
-        // Request initial show
-        const getInitialShow = async () => {
-            const shows = await signalRService.getAllShows();
-            if (shows.length > 0) {
-                const randomIndex = Math.floor(Math.random() * shows.length);
-                setCurrentShow(shows[randomIndex]);
-            }
-        };
-        getInitialShow();
     }, []);
 
-    if (!currentShow) {
+    if (!tvShowStore.currentShow) {
         return (
             <Box
                 display="flex"
@@ -39,13 +29,7 @@ const ShowDisplay: React.FC = () => {
     }
 
     return (
-        <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            minHeight="100vh"
-            padding={3}
-        >
+        <div className={styles.container}>
             <Paper
                 elevation={3}
                 sx={{
@@ -56,11 +40,14 @@ const ShowDisplay: React.FC = () => {
                 }}
             >
                 <Typography variant="h3" gutterBottom color="primary">
-                    {currentShow.name}
+                    {tvShowStore.currentShow.name}
                 </Typography>
             </Paper>
-        </Box>
+            <Link to="/manage" className={styles.cornerButton}>
+                ⚙️
+            </Link>
+        </div>
     );
-};
+});
 
 export default ShowDisplay; 
