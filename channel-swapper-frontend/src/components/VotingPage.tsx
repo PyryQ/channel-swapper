@@ -1,49 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Button, Typography, Box, CircularProgress } from '@mui/material';
-import { signalRService } from '../services/signalrService';
+import { observer } from 'mobx-react-lite';
+import { tvShowStore } from '../stores/TvShowStore';
 
-const VotingPage: React.FC = () => {
-    const [votes, setVotes] = useState(0);
-    const [visitors, setVisitors] = useState(0);
-    const [votingPercentage, setVotingPercentage] = useState(0);
-
-    useEffect(() => {
-        // Get initial stats when component mounts
-        const getInitialStats = async () => {
-            const stats = await signalRService.getCurrentStats();
-            if (stats) {
-                setVotes(stats.votes);
-                setVisitors(stats.visitors);
-                setVotingPercentage(stats.visitors > 0 ? (stats.votes / stats.visitors) * 100 : 0);
-            }
-        };
-        getInitialStats();
-
-        signalRService.setOnStatsUpdated((newVotes, newVisitors) => {
-            console.log('Stats updated:', { votes: newVotes, visitors: newVisitors }); // Add logging
-            setVotes(newVotes);
-            setVisitors(newVisitors);
-            setVotingPercentage(newVisitors > 0 ? (newVotes / newVisitors) * 100 : 0);
-        });
-
-        return () => {
-            signalRService.setOnStatsUpdated(null);
-        };
-    }, []);
-
+const VotingPage: React.FC = observer(() => {
     const handleVote = async () => {
-        try {
-            await signalRService.vote();
-            // Get updated stats immediately after voting
-            const stats = await signalRService.getCurrentStats();
-            if (stats) {
-                setVotes(stats.votes);
-                setVisitors(stats.visitors);
-                setVotingPercentage(stats.visitors > 0 ? (stats.votes / stats.visitors) * 100 : 0);
-            }
-        } catch (error) {
-            console.error('Error voting:', error);
-        }
+        await tvShowStore.vote();
     };
 
     return (
@@ -62,7 +24,7 @@ const VotingPage: React.FC = () => {
             <Box position="relative" display="inline-flex">
                 <CircularProgress
                     variant="determinate"
-                    value={votingPercentage}
+                    value={tvShowStore.votingPercentage}
                     size={120}
                     thickness={4}
                 />
@@ -77,11 +39,10 @@ const VotingPage: React.FC = () => {
                     right={0}
                 >
                     <Typography variant="caption" component="div" color="text.secondary">
-                        {`${Math.round(votingPercentage)}%`}
+                        {`${Math.round(tvShowStore.votingPercentage)}%`}
                     </Typography>
                 </Box>
             </Box>
-            
 
             <Button
                 variant="contained"
@@ -94,14 +55,14 @@ const VotingPage: React.FC = () => {
 
             <Box textAlign="center">
                 <Typography variant="body1">
-                    Current Votes: {votes}
+                    Current Votes: {tvShowStore.votes}
                 </Typography>
                 <Typography variant="body1">
-                    Active Visitors: {visitors}
+                    Active Visitors: {tvShowStore.visitors}
                 </Typography>
             </Box>
         </Box>
     );
-};
+});
 
 export default VotingPage; 

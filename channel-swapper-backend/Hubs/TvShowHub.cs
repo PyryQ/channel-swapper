@@ -29,19 +29,32 @@ namespace channel_swapper_backend.Hubs
 
         public async Task Vote()
         {
-            _tvShowService.AddVote();
-            // Broadcast stats immediately after adding vote
+            var connectionId = Context.ConnectionId;
+            Console.WriteLine($"Vote attempt from connection: {connectionId}");
+
+            if (_tvShowService.HasVoted(connectionId))
+            {
+                Console.WriteLine($"Rejected duplicate vote from connection: {connectionId}");
+                // Send a message back to the client that they've already voted
+                await Clients.Caller.SendAsync("VoteRejected", "You have already voted");
+                return;
+            }
+
+            _tvShowService.AddVote(connectionId);
             await BroadcastStats();
             
             if (_tvShowService.ShouldChangeChannel())
             {
+                var (votes, visitors) = _tvShowService.GetCurrentStats();
+                Console.WriteLine($"Channel change threshold reached - Votes: {votes}, Visitors: {visitors}");
+                
                 var newShow = _tvShowService.GetRandomShow();
                 _tvShowService.ResetVotes();
                 if (newShow != null)
                 {
+                    Console.WriteLine($"Changing channel to: {newShow.name}");
                     await Clients.All.SendAsync("ChannelChanged", newShow);
                 }
-                // Broadcast stats again after reset
                 await BroadcastStats();
             }
         }
@@ -53,16 +66,25 @@ namespace channel_swapper_backend.Hubs
 
         public async Task AddShow(TvShow show)
         {
-            _tvShowService.AddTvShow(show);
+            _tvShowService.AddShow(show);
             await Clients.All.SendAsync("ShowsUpdated", _tvShowService.GetAllShows());
+            // Always broadcast the current show after adding a show
+            var currentShow = _tvShowService.GetCurrentShow();
+            await Clients.All.SendAsync("ChannelChanged", currentShow);
         }
 
         public async Task RemoveShow(int id)
         {
-            if (_tvShowService.RemoveTvShow(id))
-            {
-                await Clients.All.SendAsync("ShowsUpdated", _tvShowService.GetAllShows());
-            }
+            _tvShowService.RemoveShow(id);
+            await Clients.All.SendAsync("ShowsUpdated", _tvShowService.GetAllShows());
+            // Broadcast the current show (which might be null if list is empty)
+            var currentShow = _tvShowService.GetCurrentShow();
+            await Clients.All.SendAsync("ChannelChanged", currentShow);
+        }
+
+        public TvShow? GetCurrentShow()
+        {
+            return _tvShowService.GetCurrentShow();
         }
 
         private async Task BroadcastStats()

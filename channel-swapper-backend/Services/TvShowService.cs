@@ -1,34 +1,67 @@
+using System.Text.Json;
 using channel_swapper_backend.Models;
 
 namespace channel_swapper_backend.Services
 {
     public class TvShowService
     {
-        private readonly List<TvShow> _tvShows = new();
+        private readonly object _lock = new object();
+        private readonly Random _random = new Random();
+        private List<TvShow> _tvShows;
         private int _currentVotes = 0;
         private int _totalVisitors = 0;
-        private readonly object _lock = new();
-        private static Random _random = new();
+        private readonly string _dataPath = "tvshows.json";
+        private HashSet<string> _votedConnections = new HashSet<string>();
+        private TvShow? _currentShow = null;
 
-        public void AddTvShow(TvShow show)
+        public TvShowService()
+        {
+            LoadData();
+        }
+
+        private void LoadData()
         {
             lock (_lock)
             {
-                show.Id = _tvShows.Count + 1;
-                _tvShows.Add(show);
+                if (File.Exists(_dataPath))
+                {
+                    var json = File.ReadAllText(_dataPath);
+                    _tvShows = JsonSerializer.Deserialize<List<TvShow>>(json) ?? new List<TvShow>();
+                }
+                else
+                {
+                    _tvShows = new List<TvShow>();
+                    SaveData();
+                }
             }
         }
 
-        public bool RemoveTvShow(int id)
+        private void SaveData()
         {
             lock (_lock)
             {
-                var show = _tvShows.FirstOrDefault(s => s.Id == id);
-                if (show != null)
-                {
-                    return _tvShows.Remove(show);
-                }
-                return false;
+                var json = JsonSerializer.Serialize(_tvShows);
+                File.WriteAllText(_dataPath, json);
+            }
+        }
+
+        public void AddShow(TvShow show)
+        {
+            lock (_lock)
+            {
+                _tvShows.Add(show);
+                _currentShow = GetRandomShow();
+                SaveData();
+            }
+        }
+
+        public void RemoveShow(int id)
+        {
+            lock (_lock)
+            {
+                _tvShows.RemoveAll(s => s.id == id);
+                _currentShow = _tvShows.Any() ? GetRandomShow() : null;
+                SaveData();
             }
         }
 
@@ -40,7 +73,7 @@ namespace channel_swapper_backend.Services
             }
         }
 
-        public TvShow GetRandomShow()
+        public TvShow? GetRandomShow()
         {
             lock (_lock)
             {
@@ -52,29 +85,32 @@ namespace channel_swapper_backend.Services
             }
         }
 
-        public void AddVisitor()
+        public bool HasVoted(string connectionId)
         {
             lock (_lock)
             {
-                _totalVisitors++;
-                Console.WriteLine($"Visitor added. Total visitors: {_totalVisitors}");
+                var hasVoted = _votedConnections.Contains(connectionId);
+                Console.WriteLine($"Connection {connectionId} has voted: {hasVoted}");
+                Console.WriteLine($"Current voted connections: {string.Join(", ", _votedConnections)}");
+                return hasVoted;
             }
         }
 
-        public void RemoveVisitor()
+        public void AddVote(string connectionId)
         {
             lock (_lock)
             {
-                _totalVisitors = Math.Max(0, _totalVisitors - 1);
-            }
-        }
-
-        public void AddVote()
-        {
-            lock (_lock)
-            {
-                _currentVotes++;
-                Console.WriteLine($"Vote added. Current votes: {_currentVotes}");
+                if (!_votedConnections.Contains(connectionId))
+                {
+                    _currentVotes++;
+                    _votedConnections.Add(connectionId);
+                    Console.WriteLine($"Vote added for connection {connectionId}");
+                    Console.WriteLine($"Total votes: {_currentVotes}, Voted connections: {_votedConnections.Count}");
+                }
+                else
+                {
+                    Console.WriteLine($"Duplicate vote attempt from connection {connectionId}");
+                }
             }
         }
 
@@ -83,6 +119,26 @@ namespace channel_swapper_backend.Services
             lock (_lock)
             {
                 _currentVotes = 0;
+                var oldCount = _votedConnections.Count;
+                _votedConnections.Clear();
+                Console.WriteLine($"Votes reset. Cleared {oldCount} voted connections");
+            }
+        }
+
+        public void AddVisitor()
+        {
+            lock (_lock)
+            {
+                _totalVisitors++;
+            }
+        }
+
+        public void RemoveVisitor()
+        {
+            lock (_lock)
+            {
+                if (_totalVisitors > 0)
+                    _totalVisitors--;
             }
         }
 
@@ -98,8 +154,15 @@ namespace channel_swapper_backend.Services
         {
             lock (_lock)
             {
-                if (_totalVisitors == 0) return false;
-                return _currentVotes > (_totalVisitors / 2);
+                return _totalVisitors > 0 && _currentVotes >= _totalVisitors / 2 + 1;
+            }
+        }
+
+        public TvShow? GetCurrentShow()
+        {
+            lock (_lock)
+            {
+                return _currentShow;
             }
         }
     }
