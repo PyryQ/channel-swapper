@@ -3,6 +3,10 @@ using channel_swapper_backend.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Get allowed origins from environment variable or use default for development
+var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(",") 
+    ?? new[] { "http://localhost:3000" };
+
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddControllers();
@@ -20,9 +24,9 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>
     {
-        builder.WithOrigins("http://localhost:3000") // Add your frontend URL here
-               .AllowAnyMethod()
+        builder.WithOrigins(allowedOrigins)
                .AllowAnyHeader()
+               .AllowAnyMethod()
                .AllowCredentials();
     });
 });
