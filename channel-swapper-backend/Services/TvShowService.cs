@@ -17,6 +17,12 @@ namespace channel_swapper_backend.Services
         public TvShowService()
         {
             LoadData();
+            // Set initial show if we have any
+            if (_tvShows.Any())
+            {
+                _currentShow = _tvShows.First();
+                Console.WriteLine($"Initial show: {_currentShow.name}");
+            }
         }
 
         private void LoadData()
@@ -26,7 +32,29 @@ namespace channel_swapper_backend.Services
                 if (File.Exists(_dataPath))
                 {
                     var json = File.ReadAllText(_dataPath);
-                    _tvShows = JsonSerializer.Deserialize<List<TvShow>>(json) ?? new List<TvShow>();
+                    var shows = JsonSerializer.Deserialize<List<TvShow>>(json) ?? new List<TvShow>();
+                    
+                    // Validate that all IDs are unique
+                    var duplicateIds = shows.GroupBy(s => s.id)
+                        .Where(g => g.Count() > 1)
+                        .Select(g => g.Key)
+                        .ToList();
+                    
+                    if (duplicateIds.Any())
+                    {
+                        Console.WriteLine("Warning: Found duplicate IDs in tvshows.json, reassigning...");
+                        int currentId = 1;
+                        foreach (var show in shows)
+                        {
+                            show.id = currentId++;
+                        }
+                        _tvShows = shows;
+                        SaveData();
+                    }
+                    else
+                    {
+                        _tvShows = shows;
+                    }
                 }
                 else
                 {
@@ -49,8 +77,22 @@ namespace channel_swapper_backend.Services
         {
             lock (_lock)
             {
+                int maxId = _tvShows.Any() ? _tvShows.Max(s => s.id) : 0;
+                show.id = maxId + 1;
+                
+                if (_tvShows.Any(s => s.id == show.id))
+                {
+                    throw new InvalidOperationException($"ID {show.id} is already in use");
+                }
+
                 _tvShows.Add(show);
-                _currentShow = GetRandomShow();
+                Console.WriteLine($"Added show: {show.name} (ID: {show.id})");
+                
+                if (_currentShow == null)
+                {
+                    _currentShow = show;
+                }
+                
                 SaveData();
             }
         }
@@ -80,19 +122,18 @@ namespace channel_swapper_backend.Services
                 if (!_tvShows.Any())
                     return null;
                 
-                // If we only have one show, return it
                 if (_tvShows.Count == 1)
                     return _tvShows[0];
 
-                // Get all shows except the current one
-                var availableShows = _tvShows.Where(s => s != _currentShow).ToList();
-                
-                // If no other shows available (shouldn't happen due to first check)
-                if (!availableShows.Any())
-                    return _tvShows[0];
-                
-                int index = _random.Next(availableShows.Count);
-                return availableShows[index];
+                // Get all shows except current one
+                var availableShows = _currentShow != null
+                    ? _tvShows.Where(s => s.id != _currentShow.id).ToList()
+                    : _tvShows.ToList();
+
+                // Select random show from available ones
+                _currentShow = availableShows.OrderBy(x => Guid.NewGuid()).First();
+                Console.WriteLine($"Selected new show: {_currentShow.name}");
+                return _currentShow;
             }
         }
 
@@ -101,8 +142,10 @@ namespace channel_swapper_backend.Services
             lock (_lock)
             {
                 var hasVoted = _votedConnections.Contains(connectionId);
-                Console.WriteLine($"Connection {connectionId} has voted: {hasVoted}");
-                Console.WriteLine($"Current voted connections: {string.Join(", ", _votedConnections)}");
+                if (hasVoted)
+                {
+                    Console.WriteLine($"Duplicate vote attempt from {connectionId}");
+                }
                 return hasVoted;
             }
         }
@@ -115,12 +158,10 @@ namespace channel_swapper_backend.Services
                 {
                     _currentVotes++;
                     _votedConnections.Add(connectionId);
-                    Console.WriteLine($"Vote added for connection {connectionId}");
-                    Console.WriteLine($"Total votes: {_currentVotes}, Voted connections: {_votedConnections.Count}");
+                    Console.WriteLine($"Vote added (total: {_currentVotes}, connections: {_votedConnections.Count})");
                 }
                 else
                 {
-                    Console.WriteLine($"Duplicate vote attempt from connection {connectionId}");
                     throw new InvalidOperationException("You have already voted");
                 }
             }
@@ -130,10 +171,10 @@ namespace channel_swapper_backend.Services
         {
             lock (_lock)
             {
-                _currentVotes = 0;
                 var oldCount = _votedConnections.Count;
+                _currentVotes = 0;
                 _votedConnections.Clear();
-                Console.WriteLine($"Votes reset. Cleared {oldCount} voted connections");
+                Console.WriteLine($"Votes reset (cleared {oldCount} connections)");
             }
         }
 
@@ -166,11 +207,10 @@ namespace channel_swapper_backend.Services
         {
             lock (_lock)
             {
-                // Only change channel if we have visitors and enough votes (more than 50%)
                 var shouldChange = _totalVisitors > 0 && _currentVotes > _totalVisitors / 2;
                 if (shouldChange)
                 {
-                    Console.WriteLine($"Should change channel: true (votes: {_currentVotes}, visitors: {_totalVisitors}, threshold: {_totalVisitors / 2})");
+                    Console.WriteLine($"Channel change threshold reached (votes: {_currentVotes}/{_totalVisitors})");
                 }
                 return shouldChange;
             }

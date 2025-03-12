@@ -11,6 +11,14 @@ const ShowDisplay = observer(() => {
         signalRService.setOnChannelChanged((show) => {
             tvShowStore.setCurrentShow(show);
         });
+        
+        // Start connection as show display
+        signalRService.start(true);
+
+        return () => {
+            // Restart connection as normal when component unmounts
+            signalRService.start(false);
+        };
     }, []);
 
     if (!tvShowStore.currentShow) {
