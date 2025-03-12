@@ -1,0 +1,12 @@
+0000000000000000000000000000000000000000 fdddbaf4f3c166e45541851af09dc579330f03e4 Pyry Qvick <pyry.qvick@buutti.com> 1741609704 +0200	commit (initial): Initial commit with complete frontend and backend
+fdddbaf4f3c166e45541851af09dc579330f03e4 0000000000000000000000000000000000000000 Pyry Qvick <pyry.qvick@buutti.com> 1741610009 +0200	Branch: renamed refs/heads/master to refs/heads/main
+0000000000000000000000000000000000000000 fdddbaf4f3c166e45541851af09dc579330f03e4 Pyry Qvick <pyry.qvick@buutti.com> 1741610009 +0200	Branch: renamed refs/heads/master to refs/heads/main
+fdddbaf4f3c166e45541851af09dc579330f03e4 4fb99db1f67e1ce8faf26c8565ace6a38825d35a Pyry Qvick <pyry.qvick@buutti.com> 1741681386 +0200	commit: build: some changes and fixes
+4fb99db1f67e1ce8faf26c8565ace6a38825d35a 449146215491dd9705b20505b2dea7cd9a0103f0 Pyry Qvick <pyry.qvick@buutti.com> 1741682735 +0200	commit: build: added remote
+449146215491dd9705b20505b2dea7cd9a0103f0 c3812891da39cdd6ea39c38d8d7ba1dc2c02e848 Pyry Qvick <pyry.qvick@buutti.com> 1741683186 +0200	commit: build: minor naviagation changes
+c3812891da39cdd6ea39c38d8d7ba1dc2c02e848 da24451461658f44c22f0501568617782584e164 Pyry Qvick <pyry.qvick@buutti.com> 1741683859 +0200	commit: build: minor logic fix
+da24451461658f44c22f0501568617782584e164 dc32abd2a6c53ecb3844cd3c91d8a12896af891b Pyry Qvick <pyry.qvick@buutti.com> 1741765848 +0200	commit: build: fixes
+dc32abd2a6c53ecb3844cd3c91d8a12896af891b 416dc7b8683bb55b3f93c5dd10391891ba85fd9d Pyry Qvick <pyry.qvick@buutti.com> 1741767729 +0200	commit: build: added fixes
+416dc7b8683bb55b3f93c5dd10391891ba85fd9d 0772047a08ee627f2ad0d90542a63dc2f8bb87fb Pyry Qvick <pyry.qvick@buutti.com> 1741780766 +0200	commit: build: dockerfile
+0772047a08ee627f2ad0d90542a63dc2f8bb87fb a7df31b38e662265ca92ee1943d00a617b5278fc Pyry Qvick <pyry.qvick@buutti.com> 1741781196 +0200	commit: build: docker file changes
+a7df31b38e662265ca92ee1943d00a617b5278fc 98dc10214702896127c2518b5fa5806185944722 Pyry Qvick <pyry.qvick@buutti.com> 1741781562 +0200	commit: build: minor comment change

@@ -8,7 +8,6 @@ var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Spli
     ?? new[] { "http://localhost:3000" };
 
 // Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -46,6 +45,8 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<TvShowHub>("/tvShowHub");
 
-app.Urls.Add("http://localhost:5000");
+// Configure the port
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+app.Urls.Add($"http://0.0.0.0:{port}");
 
 app.Run();

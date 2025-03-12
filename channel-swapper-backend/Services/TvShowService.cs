@@ -10,12 +10,19 @@ namespace channel_swapper_backend.Services
         private List<TvShow> _tvShows;
         private int _currentVotes = 0;
         private int _totalVisitors = 0;
-        private readonly string _dataPath = "tvshows.json";
+        private readonly string _dataPath;
         private HashSet<string> _votedConnections = new HashSet<string>();
         private TvShow? _currentShow = null;
 
         public TvShowService()
         {
+            // Get data directory from environment variable or use current directory
+            var dataDir = Environment.GetEnvironmentVariable("DATA_DIR") ?? ".";
+            _dataPath = Path.Combine(dataDir, "tvshows.json");
+            
+            // Ensure directory exists
+            Directory.CreateDirectory(dataDir);
+            
             LoadData();
             // Set initial show if we have any
             if (_tvShows.Any())
