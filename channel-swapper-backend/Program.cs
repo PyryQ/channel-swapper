@@ -46,6 +46,8 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<TvShowHub>("/tvShowHub");
 
-app.Urls.Add("http://localhost:5000");
+// Configure the port
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+app.Urls.Add($"http://0.0.0.0:{port}");
 
 app.Run();
