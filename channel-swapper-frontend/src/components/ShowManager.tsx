@@ -6,7 +6,6 @@ import {
     List,
     ListItem,
     ListItemText,
-    ListItemSecondaryAction,
     IconButton,
     Typography,
     Paper,
@@ -90,11 +89,9 @@ const ShowManager: React.FC = () => {
             <Paper elevation={3} sx={{ width: '100%', maxWidth: 600 }}>
                 <List>
                     {shows.map((show) => (
-                        <ListItem key={show.id}>
-                            <ListItemText
-                                primary={show.name}
-                            />
-                            <ListItemSecondaryAction>
+                        <ListItem
+                            key={show.id}
+                            secondaryAction={
                                 <IconButton
                                     edge="end"
                                     aria-label="delete"
@@ -102,7 +99,11 @@ const ShowManager: React.FC = () => {
                                 >
                                     <DeleteIcon />
                                 </IconButton>
-                            </ListItemSecondaryAction>
+                            }
+                        >
+                            <ListItemText
+                                primary={show.name}
+                            />
                         </ListItem>
                     ))}
                 </List>

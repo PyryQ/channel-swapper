@@ -7,40 +7,23 @@ namespace channel_swapper_backend.Hubs
     public class TvShowHub : Hub
     {
         private readonly TvShowService _tvShowService;
-        private static HashSet<string> _showDisplayConnections = new HashSet<string>();
 
         public TvShowHub(TvShowService tvShowService)
         {
             _tvShowService = tvShowService;
         }
 
-        public async Task OnShowDisplayConnect()
-        {
-            _showDisplayConnections.Add(Context.ConnectionId);
-            await base.OnConnectedAsync();
-        }
-
         public override async Task OnConnectedAsync()
         {
-            if (!_showDisplayConnections.Contains(Context.ConnectionId))
-            {
-                _tvShowService.AddVisitor();
-                await BroadcastStats();
-            }
+            _tvShowService.AddVisitor();
+            await BroadcastStats();
             await base.OnConnectedAsync();
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            if (_showDisplayConnections.Contains(Context.ConnectionId))
-            {
-                _showDisplayConnections.Remove(Context.ConnectionId);
-            }
-            else
-            {
-                _tvShowService.RemoveVisitor();
-                await BroadcastStats();
-            }
+            _tvShowService.RemoveVisitor();
+            await BroadcastStats();
             await base.OnDisconnectedAsync(exception);
         }
 

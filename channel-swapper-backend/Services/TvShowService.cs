@@ -199,7 +199,9 @@ namespace channel_swapper_backend.Services
         {
             lock (_lock)
             {
-                return (_currentVotes, _totalVisitors);
+                // Subtract 1 from visitors to account for show display
+                var actualVisitors = Math.Max(0, _totalVisitors - 1);
+                return (_currentVotes, actualVisitors);
             }
         }
 
@@ -207,10 +209,12 @@ namespace channel_swapper_backend.Services
         {
             lock (_lock)
             {
-                var shouldChange = _totalVisitors > 0 && _currentVotes > _totalVisitors / 2;
+                // Subtract 1 from visitors to account for show display
+                var actualVisitors = Math.Max(0, _totalVisitors - 1);
+                var shouldChange = actualVisitors > 0 && _currentVotes > actualVisitors / 2;
                 if (shouldChange)
                 {
-                    Console.WriteLine($"Channel change threshold reached (votes: {_currentVotes}/{_totalVisitors})");
+                    Console.WriteLine($"Channel change threshold reached (votes: {_currentVotes}/{actualVisitors})");
                 }
                 return shouldChange;
             }

@@ -44,10 +44,15 @@ class SignalRService {
         try {
             await this.connection.start();
             console.log('SignalR Connected');
+            
             if (this.isShowDisplay) {
                 await this.connection.invoke('OnShowDisplayConnect');
                 console.log('Identified as show display');
+            } else {
+                await this.connection.invoke('InitializeConnection');
+                console.log('Initialized as regular connection');
             }
+
             this.shows = await this.getAllShows();
             
             // Get current show on connection
