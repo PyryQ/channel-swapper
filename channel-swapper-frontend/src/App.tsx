@@ -21,7 +21,7 @@ const theme = createTheme({
 
 function App() {
   useEffect(() => {
-    signalRService.start();
+    signalRService.start(false);
   }, []);
 
   return (

@@ -7,6 +7,7 @@ class SignalRService {
     private onStatsUpdated: ((votes: number, visitors: number) => void) | null = null;
     private onShowsUpdated: ((shows: TvShow[]) => void) | null = null;
     private shows: TvShow[] = [];
+    private isShowDisplay: boolean = false;
 
     constructor() {
         this.connection = new signalR.HubConnectionBuilder()
@@ -38,10 +39,20 @@ class SignalRService {
         });
     }
 
-    public async start() {
+    public async start(isShowDisplay: boolean = false) {
+        this.isShowDisplay = isShowDisplay;
         try {
             await this.connection.start();
             console.log('SignalR Connected');
+            
+            if (this.isShowDisplay) {
+                await this.connection.invoke('OnShowDisplayConnect');
+                console.log('Identified as show display');
+            } else {
+                await this.connection.invoke('InitializeConnection');
+                console.log('Initialized as regular connection');
+            }
+
             this.shows = await this.getAllShows();
             
             // Get current show on connection
@@ -51,7 +62,7 @@ class SignalRService {
             }
         } catch (err) {
             console.log('SignalR Connection Error: ', err);
-            setTimeout(() => this.start(), 5000);
+            setTimeout(() => this.start(this.isShowDisplay), 5000);
         }
     }
 
