@@ -28,11 +28,7 @@ const ShowDisplay = observer(() => {
                 justifyContent="center"
                 alignItems="center"
                 minHeight="100vh"
-            >
-                <Typography variant="h6" color="text.secondary">
-                    No shows available...
-                </Typography>
-            </Box>
+            />
         );
     }
 

@@ -10,8 +10,9 @@ class SignalRService {
     private isShowDisplay: boolean = false;
 
     constructor() {
+        const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
         this.connection = new signalR.HubConnectionBuilder()
-            .withUrl('http://localhost:5000/tvShowHub')
+            .withUrl(`${backendUrl}/tvShowHub`)
             .withAutomaticReconnect()
             .build();
 
