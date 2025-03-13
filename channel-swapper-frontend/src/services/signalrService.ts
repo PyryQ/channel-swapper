@@ -10,6 +10,7 @@ class SignalRService {
     private isShowDisplay: boolean = false;
 
     constructor() {
+        
         const backendUrl = process.env.REACT_APP_API_URL || 'https://channel-swapper.onrender.com';
         console.log('Backend URL:', backendUrl); // Debug log
         this.connection = new signalR.HubConnectionBuilder()
